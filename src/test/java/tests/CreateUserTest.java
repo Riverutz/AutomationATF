@@ -1,16 +1,19 @@
+package tests;
+
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import io.restassured.response.ResponseBody;
 import io.restassured.specification.RequestSpecification;
-import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import requestObject.RequestUserObject;
+import responseObject.ResponseTokenObject;
+import responseObject.ResponseUserObject;
 
 public class CreateUserTest {
 
     public String baseURI = "https://demoqa.com";
-    public JSONObject requestBody;
+    public RequestUserObject requestBody;
 
     @Test
     public void testMethod() {
@@ -19,8 +22,6 @@ public class CreateUserTest {
 
         System.out.println("===== STEP 2: Generate Token =====");
         generateToken();
-
-
     }
 
     public void createAccount() {
@@ -30,13 +31,11 @@ public class CreateUserTest {
         request.contentType(ContentType.JSON);
         request.baseUri(baseURI);
 
-        String username = "DanielTesting" + System.currentTimeMillis();
-        requestBody = new JSONObject();
-        requestBody.put("userName", username);
-        requestBody.put("password", "Automation24#'#!");
+        requestBody = new RequestUserObject("src/test/resources/createUser.json");
 
         //ADAUGAM REQUEST BODY
-        request.body(requestBody.toString());
+        System.out.println(requestBody);
+        request.body(requestBody);
 
         //EXECUTAM REQUEST-ul DE TIP POST LA UN ENDPOINT SPECIFIC
         Response response = request.post("/Account/v1/User");
@@ -45,8 +44,9 @@ public class CreateUserTest {
         System.out.println(response.getStatusCode());
         Assert.assertEquals(response.getStatusCode(), 201);
 
-        ResponseBody responseBody = response.getBody();
-        Assert.assertTrue(responseBody.asPrettyString().contains(username));
+        ResponseUserObject responseBody = response.getBody().as(ResponseUserObject.class);
+        Assert.assertTrue(responseBody.getUsername().equals(requestBody.getUserName()));
+        System.out.println(responseBody);
 
         //VALIDAM STATUS
         Assert.assertTrue(response.getStatusLine().contains("Created"));
@@ -59,15 +59,15 @@ public class CreateUserTest {
         request.contentType(ContentType.JSON);
         request.baseUri(baseURI);
 
-        request.body(requestBody.toString());
+        request.body(requestBody);
 
         Response response = request.post("/Account/v1/GenerateToken");
 
         System.out.println(response.getStatusCode());
         Assert.assertEquals(response.getStatusCode(), 200);
 
-        ResponseBody responseBody = response.getBody();
-        Assert.assertTrue(responseBody.asPrettyString().contains("token"));
+        ResponseTokenObject responseBody = response.getBody().as(ResponseTokenObject.class);
+        System.out.println(responseBody.getToken());
         Assert.assertTrue(response.getStatusLine().contains("OK"));
     }
 }
