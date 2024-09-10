@@ -18,7 +18,6 @@ public class RequestUserObject extends GeneralObject{
 
     @JsonProperty("userName")
     private String userName;
-
     @JsonProperty("password")
     private String password;
 }
